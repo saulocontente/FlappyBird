@@ -3,6 +3,7 @@ package com.contente.flappybird;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -10,6 +11,10 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Circle;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.utils.viewport.FillViewport;
+import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.utils.viewport.StretchViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
 
 import java.util.Random;
 
@@ -31,8 +36,8 @@ public class FlappyBird extends ApplicationAdapter {
 
 	private float variacao=0;
 	private float velocidadeQueda=0;
-	private int larguraDispositivo;
-	private int alturaDispositivo;
+	private float larguraDispositivo;
+	private float alturaDispositivo;
 	private float posicaoPassaroVertical;
 	private float posicaoPassaroHorizontal;
 	private float posicaoCanosHorizontal;
@@ -47,6 +52,12 @@ public class FlappyBird extends ApplicationAdapter {
 	private float posicaoCirculoHorizontal;
 	private float posicaoCirculoVertical;
 	private float raioCirculo;
+
+	private OrthographicCamera camera;
+	private Viewport viewport;
+	private final float VIRTUAL_HEIGHT=1024;
+	private final float VIRTUAL_WIDTH=768;
+
 
 
 
@@ -63,7 +74,7 @@ public class FlappyBird extends ApplicationAdapter {
 		canoAlto = new Texture("cano_topo_maior.png");
 		canoBaixo = new Texture("cano_baixo_maior.png");
 		fontePontuacao = new BitmapFont();
-		fontePontuacao.setColor(Color.GRAY);
+		fontePontuacao.setColor(Color.GOLD);
 		fontePontuacao.getData().setScale(7);
 		circuloPassaro = new Circle();
 		retanguloCanoAlto = new Rectangle();
@@ -74,18 +85,27 @@ public class FlappyBird extends ApplicationAdapter {
 		fonteRestart.setColor(Color.WHITE);
 		fonteRestart.getData().setScale(3);
 
-		larguraDispositivo = Gdx.graphics.getWidth();
-		alturaDispositivo = Gdx.graphics.getHeight();
+
+		camera = new OrthographicCamera();
+		viewport = new StretchViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, camera);
+		camera.position.set(VIRTUAL_WIDTH/2, VIRTUAL_HEIGHT/2, 0);
+
+
+		larguraDispositivo = VIRTUAL_WIDTH;
+		alturaDispositivo = VIRTUAL_HEIGHT;
 		posicaoPassaroVertical = (alturaDispositivo/2);
 		posicaoPassaroHorizontal = 130;
-		espacamentoCanosMax = alturaDispositivo/8;
+		espacamentoCanosMax = (int) (alturaDispositivo/8);
 		posicaoCanosHorizontal = larguraDispositivo + canoBaixo.getWidth();
 		posicaoCanoAltoVertical = alturaDispositivo/2 + espacamentoCanosMax;
 		posicaoCanoBaixoVertical = alturaDispositivo/2 - canoBaixo.getHeight() - espacamentoCanosMax;
+
 	}
 
 	@Override
 	public void render () {
+		camera.update();
+
 		float tempoVariacao = Gdx.graphics.getDeltaTime() * 10;
 		Gdx.app.log("Render", "Variacao do Render: " + Gdx.graphics.getDeltaTime());
 
@@ -149,13 +169,15 @@ public class FlappyBird extends ApplicationAdapter {
 			}
 		}
 
+		batch.setProjectionMatrix( camera.combined );
+
 		batch.begin();
 		//ordem do draw nas linhas define a ordem de criação:
 		batch.draw(background, 0, 0, larguraDispositivo, alturaDispositivo);
 		batch.draw(canoAlto, posicaoCanosHorizontal, posicaoCanoAltoVertical);
 		batch.draw(canoBaixo, posicaoCanosHorizontal, posicaoCanoBaixoVertical);
 		batch.draw(passaro[(int) variacao], posicaoPassaroHorizontal, posicaoPassaroVertical);
-		fontePontuacao.draw(batch, String.valueOf(pontuacao), larguraDispositivo/2, alturaDispositivo - (alturaDispositivo/8));
+		fontePontuacao.draw(batch, String.valueOf(pontuacao), larguraDispositivo/2 - fontePontuacao.getScaleX(), alturaDispositivo - (alturaDispositivo/8));
 
 		if(estadoJogo==2){
 			batch.draw(gameOver, (larguraDispositivo-gameOver.getWidth())/2, alturaDispositivo/2);
@@ -188,5 +210,10 @@ public class FlappyBird extends ApplicationAdapter {
 			Gdx.app.log("COLISAO", "Houve colisão");
 			estadoJogo=2;
 		}
+	}
+
+	@Override
+	public void resize(int width, int height) {
+		viewport.update(width, height);
 	}
 }
