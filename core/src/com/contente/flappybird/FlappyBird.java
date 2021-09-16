@@ -3,6 +3,7 @@ package com.contente.flappybird;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -105,6 +106,9 @@ public class FlappyBird extends ApplicationAdapter {
 	@Override
 	public void render () {
 		camera.update();
+
+		//Limpar frames anteriores
+		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
 		float tempoVariacao = Gdx.graphics.getDeltaTime() * 10;
 		Gdx.app.log("Render", "Variacao do Render: " + Gdx.graphics.getDeltaTime());
